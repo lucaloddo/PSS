@@ -1,0 +1,76 @@
+<nav xmlns:th="http://www.thymeleaf.org" th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <img th:src="@{/images/logo.png}" width="100" height="50">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".mainNavbarCollapse"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse mainNavbarCollapse justify-content-end" role="navigation">
+            <ul class="navbar-nav"> <!--  Parte centrale  -->
+                <li class="nav-item me-3">
+                    <a class="nav-link text-primary" aria-current="page" th:href="@{/}">DASHBOARD</a>
+                </li>
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link text-primary dropdown-toggle" href="#" id="domandeDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Domande
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="domandeDropdown">
+                        <li><a class="dropdown-item" th:href="@{/domande/elencoTutteDomande}">Tutte le domande</a></li>
+                        <li><a class="dropdown-item" th:href="@{/domande/elencoMieDomande}">Le mie domande</a></li>
+                        <li><a class="dropdown-item" th:href="@{/domande/poniDomanda}">Fai una domanda</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link text-primary dropdown-toggle" href="#" id="preventiviDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        Preventivi e Risposte
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="preventiviDropdown">
+                        <li><a class="dropdown-item" th:href="@{/preventivi/elencoMieiPreventivi}">I miei preventivi</a></li>
+                        <li><a class="dropdown-item" th:href="@{/risposte/elencoRisposte}">Le mie risposte</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item me-3">
+                    <a class="nav-link text-primary" href="javascript: document.logoutForm.submit()">Logout</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="collapse navbar-collapse mainNavbarCollapse justify-content-end" role="navigation">
+            <ul class="navbar-nav"> <!-- Parte destra -->
+                <li class="nav-item me-3">
+                    <form class="d-flex input-group w-auto" method="GET" th:action="@{/utenti/profiloPubblico}">
+                        <input type="search" class="form-control" placeholder="Nickname" name="nickname">
+                        <button class="btn btn-outline-primary" type="submit" data-mdb-ripple-color="dark">
+                            <img th:src="@{/images/search.png}" width="40" height="30">
+                        </button>
+                    </form>
+                </li>
+                <li class="nav-item me-3">
+                    <div class="dropdown">
+                        <a href="#" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img th:src="@{/images/userAccount.png}" width="45" height="45">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li>
+                                <a class="dropdown-item text-primary" th:href="@{/utenti/profilo}">Il mio profilo</a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-primary" th:href="@{/commenti/elencoCommenti}">
+                                    I commenti al mio profilo
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-primary" th:href="@{/commenti/elencoCommentiFatti}">
+                                    Storico commenti fatti
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

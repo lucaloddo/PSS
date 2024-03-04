@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Elenco preventivi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+
+<body>
+
+<div th:replace="~{navbar :: navbar}"></div>
+
+<main>
+  <div id="menu_screen" class="vh-100">
+    <section class="py-5 text-center container">
+        <div class="row py-lg-5">
+            <div class="col-lg-6 col-md-8 mx-auto">
+                <h1 class="fw-light">Ecco l'elenco dei tuoi preventivi fatti in passato</h1>
+                <p class="lead text-muted">Benvenuto nella pagina di elenco preventivi, qui potrai visualizza i preventivi da te fatti in passato.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="album py-5 bg-light">
+        <div class="container">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+                <div class="col" th:each="preventivo: ${preventivi}">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <p class="card-text"><b>Titolo: </b><span th:text="${preventivo.getDomanda().getTitolo()}"/></p>
+                            <p class="card-text"><b>Materia: </b><span th:text="${preventivo.getDomanda().getMateria()}"/></p>
+                            <p class="card-text"><b>Utente: </b><span th:text="${preventivo.getUtenteResponder().getNickname()}"/></p>
+                            <p class="card-text"><b>Prezzo: </b><span th:text="${preventivo.getPrezzo()}"/></p>
+                            <p class="card-text"><b>Giorni entro cui rispondere: </b><span th:text="${preventivo.getGiorniAttesa()}"/></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div th:if="${preventivo.getIsAccettato() == TRUE}">
+                                    <div th:if="${preventivo.getRisposta() != NULL}">
+                                        <form th:action="@{/risposte/visualizzaRisposta/responder}" method="post">
+                                            <input type="hidden" name="idRisposta" th:value="${preventivo.getRisposta().getId()}">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">visualizza risposta</button>
+                                        </form>
+                                    </div>
+
+                                    <div th:if="${preventivo.getRisposta() == null}">
+                                        <form th:action="@{/risposte/inviaRisposta(id=${preventivo.getId()})}" method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">invia risposta</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <small class="text-muted">Livello di approfondimento: <span th:text="${preventivo.getApprofondimento()}"/></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</body>
+</html>

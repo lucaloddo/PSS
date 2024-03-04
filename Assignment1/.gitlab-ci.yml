@@ -1,0 +1,111 @@
+image: maven:adoptopenjdk
+
+services:
+  - mysql
+
+variables:
+  MAVEN_CLI_OPTS: "--batch-mode"
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MYSQL_DATABASE: students
+  MYSQL_ROOT_PASSWORD: myPassword
+
+cache:
+  paths:
+    - .m2/repository
+
+stages:
+  - build
+  - verify
+  - unit-test
+  - integration-test
+  - package
+  - release
+  - deploy
+
+# stage 'build'
+# Viene lanciato il comando 'compile' di Maven, il quale effettua la build dell'applicazione ed effettua il download delle dipendenze (librerie). # Le dipendenze vengono salvate nella cache di questo repository in modo tale da non rieffettuare il download delle stesse ad ogni esecuzione
+# della pipeline.
+build:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS compile
+
+# stage 'verify'
+# Il comando presente nella sezione 'script' di questo stage fa parte della libreria SpotBugs e permette di effettuare un'analisi statica del 
+# codice. Il comando viene lanciato da Maven.
+verify:
+  stage: verify
+  script:
+    - mvn spotbugs:spotbugs
+
+# stage 'unit-test'
+# Viene lanciato il comando 'test' di Maven con un parametro (-Dtest) per effettuare solo i test presenti nella classe UnitTests.
+unit-test:
+  stage: unit-test
+  script:
+    - mvn -Dtest=UnitTests test
+
+# stage 'integration-test'
+# Viene lanciato il comando 'test' di Maven con un parametro (-Dtest) per effettuare solo i test presenti nella classe IntegrationTests.
+# Dato che gli integration tests permettono di capire se le componenti dell'applicazione, in questo caso la stessa app e il database, comunicano
+# tra di loro, è necessario caricare il database all'interno di questo ambiente.
+# Per caricare il db, bisogna installare il client di MySQL e caricare il db attraverso un dump effettuato in locale.
+# I comandi che permettono questo caricamento sono presenti nella sezione 'before_script' di questo stage.
+integration-test:
+  stage: integration-test
+  before_script:
+    - apt-get update -q && apt-get install -qqy --no-install-recommends mysql-client
+    - echo "SELECT 'OK';" | mysql --user=root --password="${MYSQL_ROOT_PASSWORD}" --host="mysql" "${MYSQL_DATABASE}"
+    - mysql --user=root --password="${MYSQL_ROOT_PASSWORD}" --host="mysql" students < dump.sql
+  script:
+    - mvn -Dtest=IntegrationTests test
+
+# stage 'package'
+# Viene lanciato il comando 'install' di Maven, che permette di creare un pacchetto .jar dell'applicazione, con due parametri:
+#   -DskipTests permette di non effettuare i tests dell'applicazione dato che sono stati già eseguiti nei due stage precedenti.
+#   -Pprod permette di creare il pacchetto dell'applicazione con il profilo "prod", cioè di production, che utilizza la configurazione
+#   presente in application-prod.properties. Le proprietà all'interno di questa configurazione permettono all'app di collegarsi al database
+#   remoto presente su ClearDB (Heroku).
+# Il pacchetto .jar viene salvato come target/app-0.0.1-SNAPSHOT.jar alla fine dell'esecuzione di questo stage.
+package:
+  stage: package
+  script:
+    - mvn -DskipTests -Pprod clean install
+  artifacts:
+    paths:
+      - target/*.jar
+
+# stage 'release'
+# Nella sezione 'before_script' di questo stage, viene sviluppato il pacchetto .jar dell'applicazione come immagine Docker all'interno
+# del GitLab Container Registry. Nella sezione 'script', poi, la stessa immagine Docker dell'applicazione viene pushata sull'Heroku Registry.
+release:
+  image: docker:latest
+  stage: release
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t registry.gitlab.com/rzl1/app .
+    - docker push registry.gitlab.com/rzl1/app:latest
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker pull registry.gitlab.com/rzl1/app:latest
+    - docker login -u loddo.luca99@gmail.com -p 9d833211-6e2e-48ee-a06d-cfad4e5172f2 registry.heroku.com
+    - docker tag registry.gitlab.com/rzl1/app:latest registry.heroku.com/app-rzl/web:latest
+    - docker push registry.heroku.com/app-rzl/web:latest
+
+# stage 'deploy'
+# Nella sezione 'before_script' di questo stage, installiamo nell'ambiente le librerie 'curl' e 'bash' che ci permettono di
+# installare Heroku CLI. Nella sezione 'script', poi, effettuiamo il deploy vero e proprio dell'app, recuperando l'immagine
+# dall'Heroku Registry pushata nello stage precedente.
+deploy:
+  image: node:current-alpine3.16
+  stage: deploy
+  before_script:
+    - apk add curl
+    - apk add bash
+    - curl https://cli-assets.heroku.com/install.sh | sh
+    - heroku --version
+  script:
+    - heroku container:release web -a app-rzl
+    - heroku ps:scale web=1 -a app-rzl

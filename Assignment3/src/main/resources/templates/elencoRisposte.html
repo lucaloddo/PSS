@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Le tue risposte</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+
+<body>
+
+<div th:replace="~{navbar :: navbar}"></div>
+
+<main>
+  <div id="menu_screen" class="vh-100">
+
+  <section class="py-5 text-center container">
+    <div class="row py-lg-5">
+      <div class="col-lg-6 col-md-8 mx-auto">
+        <h1 class="fw-light">Ecco l'elenco delle tue risposte date fino ad ora</h1>
+        <p class="lead text-muted">Benvenuto nella pagina delle tue risposte, qui potrai visionare lo storico delle tue risposte.</p>
+
+      </div>
+    </div>
+  </section>
+
+  <div class="album py-5 bg-light">
+    <div class="container">
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+        <div class="col" th:each="risposta: ${risposte}">
+          <div class="card shadow-sm">
+            <div class="card-body">
+              <p class="card-text"><b>Domanda: </b><span th:text="${risposta.key.getTitolo()}"/></p>
+              <p class="card-text"><b>Materia: </b><span th:text="${risposta.key.getMateria()}"/></p>
+              <p class="card-text"><b>Testo: </b><span th:text="${risposta.key.getTestoQuesito()}"/></p>
+              <form method="POST" th:action="@{/risposte/visualizzaRisposta/responder}">
+                <input type="hidden" name="idRisposta" th:value="${risposta.value.getId()}">
+                <button type="submit" class="btn btn-sm btn-outline-success">Visualizza la risposta</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div>
+</main>
+
+<div th:replace="~{footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</body>
+</html>
